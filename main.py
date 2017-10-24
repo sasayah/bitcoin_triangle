@@ -3,6 +3,7 @@ import sys
 import json
 import urllib.request
 import itertools
+import os
 
 
 def getprice(coina,coinb):
@@ -34,8 +35,10 @@ def getprice(coina,coinb):
                 sys.exit(1)
     except urllib.error.HTTPError as e:
         print('HTTPError: ', e)
+        sys.exit(1)
     except json.JSONDecodeError as e:
         print('JSONDecodeError: ', e)
+        sys.exit(1)
 
 # coina -> coinb -> coinc　でそれぞれ1bitcoinの価値あたりで取引
 def triangle_trade_profit(coina, coinb, coinc):
@@ -82,14 +85,25 @@ def search_max_profit(coinlist):
     return (max_profit_list, true_reverse, max_profit)
 
         
+def buy_coin(coina, coinb, quantity, rate):
+    try:
+        url = 'https://bittrex.com/api/v1.1/market/buylimit?apikey=' + os.environ["API_KEY"] + '&market=' + coina + '-' + coinb + '&quantity=' + str(quantity) +'&rate=' + str(rate)
+        res = urllib.request.urlopen(url)
+        data = json.loads(res.read().decode('utf-8'))
+        return data
+    except urllib.error.HTTPError as e:
+        print('HTTPError: ', e)
+        sys.exit(1)
+    except json.JSONDecodeError as e:
+        print('JSONDecodeError: ', e)
+        sys.exit(1)
+
 
 
 def main():
     coinlist = ['ETH', 'BTC', 'USDT', 'LTC']
     max_profit_list, true_reverse, max_profit = search_max_profit(coinlist)
-    print(max_profit_list)
-    print(max_profit)
-    print(true_reverse)
+    print(buy_coin("BTC","ETH",100,999))
     # print(list(itertools.combinations(coinlist, 3)))
 
 
