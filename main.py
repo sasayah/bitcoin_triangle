@@ -115,6 +115,8 @@ def account_money_amount(coina,coinb,coinc):
         data_b = json.loads(res_b.read().decode('utf-8'))
         data_c = json.loads(res_c.read().decode('utf-8'))
         #現在所有のビットコインを確定!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        print(url_a)
+        print(data_a)
         curretn_coin_a_ammout = data_a['result']['Available']
         curretn_coin_b_ammout = data_b['result']['Available']
         curretn_coin_c_ammout = data_c['result']['Available']
@@ -127,7 +129,7 @@ def account_money_amount(coina,coinb,coinc):
         sys.exit(1)
 
 def cancel_trade(uuid):
-        try:
+    try:
         url = 'https://bittrex.com/api/v1.1/market/cancel?apikey=' + os.environ["API_KEY"] + '&uuid=' + uuid
         res = urllib.request.urlopen(url)
         data = json.loads(res.read().decode('utf-8'))
@@ -151,7 +153,7 @@ def execute_triangle(coinlist,minprofit):
         getprice_c_a = getprice(coinc,coina)['result']
         getprice_a_b = getprice(coina,coinb)['result']
         getprice_b_c = getprice(coinb,coinc)['result']
-    　　# 追加！！！！！!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        #追加！！！！！!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         curretn_coin_a_ammout, curretn_coin_b_ammout, curretn_coin_c_ammout = account_money_amount(coina,coinb,coinc)
         sell_coin_a_amount = curretn_coin_a_ammout * 0.8
         sell_coin_b_amount = curretn_coin_b_ammout * 0.8
@@ -175,6 +177,7 @@ def execute_triangle(coinlist,minprofit):
 def main():
     coinlist = ['ETH', 'BTC', 'USDT', 'LTC']
     minprofit = 0.001
+    account_money_amount('ETH', 'BTC', 'USDT')
     #max_profit_list, true_reverse, max_profit = search_max_profit(coinlist)
     #print(buy_coin("BTC","ETH",100,999))
     #print(list(itertools.combinations(coinlist, 3)))
