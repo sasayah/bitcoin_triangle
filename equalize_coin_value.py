@@ -138,20 +138,24 @@ def decide_trade_amount(coina, coina_amount, coinb, coinb_amount, coinc, coinc_a
     else:
         return (0.0,0.0,0.0)
 
+def account_money_amount(coina):
+    url = 'https://bittrex.com/api/v1.1/account/getbalance?apikey=' + os.environ["API_KEY"] + '&currency=' + coina
+    data = get_json_key_data(url)
+    if data['result']['Balance'] == None:
+        curretn_coin_ammout = 0.0
+    else:
+        curretn_coin_ammout = data['result']['Balance']
+
+    return curretn_coin_ammout
+
 #　現在のコイン保有量を取得
-def account_money_amount(coina,coinb,coinc):
-    url_a = 'https://bittrex.com/api/v1.1/account/getbalance?apikey=' + os.environ["API_KEY"] + '&currency=' + coina
-    url_b = 'https://bittrex.com/api/v1.1/account/getbalance?apikey=' + os.environ["API_KEY"] + '&currency=' + coinb
-    url_c = 'https://bittrex.com/api/v1.1/account/getbalance?apikey=' + os.environ["API_KEY"] + '&currency=' + coinc
-    
-    data_a = get_json_key_data(url_a)
-    data_b = get_json_key_data(url_b)
-    data_c = get_json_key_data(url_c)
-    #現在所有のビットコインを確定!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    curretn_coin_a_amount = data_a['result']['Available']
-    curretn_coin_b_amount = data_b['result']['Available']
-    curretn_coin_c_amount = data_c['result']['Available']
-    return (curretn_coin_a_amount, curretn_coin_b_amount, curretn_coin_c_amount)
+def account_money_amounts(coina,coinb,coinc):
+
+    curretn_coin_a_ammout = account_money_amount(coina)
+    curretn_coin_b_ammout = account_money_amount(coinb)
+    curretn_coin_c_ammout = account_money_amount(coinc)
+
+    return (curretn_coin_a_ammout, curretn_coin_b_ammout, curretn_coin_c_ammout)
 
 def cancel_trade(uuid):
     url = 'https://bittrex.com/api/v1.1/market/cancel?apikey=' + os.environ["API_KEY"] + '&uuid=' + uuid
@@ -283,9 +287,18 @@ def get_json_key_data(url):
         sys.exit(1)
 
 
+def btc_value_list(coinlist):
+    btc_value_list = []
+    for coin in coinlist:
+        coin_amount = account_money_amount(coina)
+        coin_btc_value = coin_amount * getprice('BTC',coin)['result']['Bid']
+        btc_value_list.append(coin_btc_value)
+    return btc_value_list
+
+
+
 def main():
-    print(getprice("BTC","ETH"))
-    print(getprice("ETH","BTC"))
-        
+    coinlist = ['ETH', 'BTC', 'USDT', 'XRP', 'BCC', 'LTC']
+    
 
 main()

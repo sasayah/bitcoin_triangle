@@ -110,6 +110,7 @@ def buy_coin(coina, coinb, quantity, rate):
     data = get_json_key_data(url)
     return data
 
+
 #　現在のコイン保有量を取得
 def account_money_amount(coina,coinb,coinc):
     url_a = 'https://bittrex.com/api/v1.1/account/getbalance?apikey=' + os.environ["API_KEY"] + '&currency=' + coina
@@ -219,21 +220,23 @@ def main():
     xrp, xmr, neo = account_money_amount('XRP', 'XMR', 'NEO')
     bcc, LTC, a = account_money_amount('BCC', 'LTC', 'NEO')
 
-
-    print("eth: " + str(eth))
-    print("btc: " + str(btc))
-    print("usdt: " + str(usdt))
-    print("xrp: " + str(xrp))
-    print("bcc: " + str(bcc))
-    print("LTC: " + str(LTC))
-
     money = 0.0
-    money += eth/getprice("ETH","BTC")['result']['Ask']
-    money += btc/getprice("BTC","BTC")['result']['Ask']
-    money += usdt/getprice("USDT","BTC")['result']['Ask']
-    money += xrp/getprice("XRP","BTC")['result']['Ask']
-    money += bcc/getprice("BCC","BTC")['result']['Ask']
-    money += LTC/getprice("LTC","BTC")['result']['Ask']
+    eth_price = eth/getprice("ETH","BTC")['result']['Ask']
+    btc_price = btc/getprice("BTC","BTC")['result']['Ask']
+    usdt_price = usdt/getprice("USDT","BTC")['result']['Ask']
+    xrp_price = xrp/getprice("XRP","BTC")['result']['Ask']
+    bcc_price = bcc/getprice("BCC","BTC")['result']['Ask']
+    ltc_price = LTC/getprice("LTC","BTC")['result']['Ask']
+ 
+    money = eth_price + btc_price + usdt_price + xrp_price + bcc_price + ltc_price
+
+    print("eth: " + str(eth) + ', btc: ' + str(eth_price))
+    print("btc: " + str(btc) + ', btc: ' + str(btc_price))
+    print("usdt: " + str(usdt) + ', btc: ' + str(usdt_price))
+    print("xrp: " + str(xrp) + ', btc: ' + str(xrp_price))
+    print("bcc: " + str(bcc) + ', btc: ' + str(bcc_price))
+    print("LTC: " + str(LTC) + ', btc: ' + str(ltc_price))
+
 
     print('Total: ' + str(money) + "(BTC)")
 
