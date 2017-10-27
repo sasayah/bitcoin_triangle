@@ -1,12 +1,16 @@
 # -*- coding: utf-8 -*-
+import numpy as np
 import sys
 import json
 import urllib.request
 import itertools
 import os
 from time import sleep
+import time
 import hmac
 import hashlib
+from joblib import Parallel, delayed
+from multiprocessing import Value, Array
 
 
 
@@ -34,7 +38,10 @@ def getprice(coina,coinb):
             sys.exit(1)
 
 # coina -> coinb -> coinc　でそれぞれ1bitcoinの価値あたりで取引
-def triangle_trade_profit(coina, coinb, coinc):
+def triangle_trade_profit(coinlist):
+    coina = coinlist[0]
+    coinb = coinlist[1]
+    coinc = coinlist[2]
     coina_volume = getprice(coina,'BTC')['result']['Ask']
     coinb_volume = getprice(coinb,'BTC')['result']['Ask']
     coinc_volume = getprice(coinc,'BTC')['result']['Ask']
@@ -56,9 +63,9 @@ def triangle_trade_profit(coina, coinb, coinc):
     # print(profit)
     # print(reverse_profit)
     if profit > reverse_profit:
-        return (profit,True)
+        return (profit,True,coinlist)
     else:
-        return (reverse_profit,False)
+        return (reverse_profit,False,coinlist)
 
 #print(getprice('ETH', 'USDT'))
 #print(getprice('BTC', 'USDT'))
@@ -76,21 +83,24 @@ def check_coin_pair_anailable(coin_pair):
         return False
 
 
-def search_max_profit(coinlist):
-    max_profit_list = ['','','']
-    max_profit = 0.0
-    true_reverse = True
+def search_max_profit(coinlist, miniprofit):
     coin_pairs = list(itertools.combinations(coinlist, 3))
+    trade_coin_pairs = []
     for coin_pair in coin_pairs:
-        if not check_coin_pair_anailable(coin_pair):
-            continue
-        profit, true_reverse = triangle_trade_profit(coin_pair[0],coin_pair[1],coin_pair[2])
-        if  max_profit < profit:
-            max_profit = profit
-            max_profit_list = coin_pair
-    return (max_profit_list, true_reverse, max_profit)
+        if check_coin_pair_anailable(coin_pair):
+            trade_coin_pairs.append(coin_pair)
+    search_results = Parallel(n_jobs=-1)( [delayed(triangle_trade_profit)(coin_pair) for coin_pair in trade_coin_pairs])
+    search_max_index = []
+    for search_result in search_results:
+        search_max_index.append(search_result[0])
+    max_index = search_max_index.index(max(search_max_index))
+    max_profit = search_results[max_index][0]
+    true_reverse = search_results[max_index][1]
+    max_profit_list = search_results[max_index][2]
+    if max_profit < miniprofit:
+        max_profit = 0.0
+    return (max_profit_list, max_profit_list, max_profit)
 
-        #エラー処理!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!apiを叩くとこは全てエラー処理
 def buy_coin(coina, coinb, quantity, rate):
     url = 'https://bittrex.com/api/v1.1/market/buylimit?apikey=' 
     url += os.environ["API_KEY"] 
@@ -109,12 +119,20 @@ def account_money_amount(coina,coinb,coinc):
     data_a = get_json_key_data(url_a)
     data_b = get_json_key_data(url_b)
     data_c = get_json_key_data(url_c)
-    #現在所有のビットコインを確定!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    print(url_a)
-    print(data_a)
-    curretn_coin_a_ammout = data_a['result']['Available']
-    curretn_coin_b_ammout = data_b['result']['Available']
-    curretn_coin_c_ammout = data_c['result']['Available']
+    #現在所有のビットコインを確定!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    if data_a['result']['Balance'] == None:
+        curretn_coin_a_ammout = 0.0
+    else:
+        curretn_coin_a_ammout = data_a['result']['Balance']
+    if data_b['result']['Balance'] == None:
+        curretn_coin_b_ammout = 0.0
+    else:
+        curretn_coin_b_ammout = data_b['result']['Balance']
+    if data_c['result']['Balance'] == None:
+        curretn_coin_c_ammout = 0.0
+    else:
+        curretn_coin_c_ammout = data_c['result']['Balance']
+
     return (curretn_coin_a_ammout, curretn_coin_b_ammout, curretn_coin_c_ammout)
 
 def cancel_trade(uuid):
@@ -123,9 +141,9 @@ def cancel_trade(uuid):
     return data
 
 
-def execute_triangle(coinlist,minprofit):
-    max_profit_list, true_reverse, max_profit = search_max_profit(coinlist)
-    if max_profit > minprofit:
+def execute_triangle(coinlist,miniprofit):
+    max_profit_list, true_reverse, max_profit = search_max_profit(coinlist, miniprofit)
+    if max_profit > miniprofit:
         coina = max_profit_list[0]
         coinb = max_profit_list[1]
         coinc = max_profit_list[2]
@@ -170,6 +188,7 @@ def get_json_data(url):
 
 def get_json_key_data(url):
     try:
+        url += '&nonce=' + str(int(time.time()))
         signing = hmac.new(os.environ["API_SECRET"].encode("UTF-8"), url.encode("UTF-8"), hashlib.sha512).hexdigest()
         headers = {'apisign': signing}
         res = urllib.request.Request(url, headers=headers)
@@ -184,8 +203,8 @@ def get_json_key_data(url):
 
 
 def main():
-    coinlist = ['ETH', 'BTC', 'USDT', 'XRP', 'XMR']
-    minprofit = 0.001
+    coinlist = ['ETH', 'BTC', 'USDT', 'XRP', 'XMR', 'NEO', 'BCC', 'LTC']
+    miniprofit = 0.001
     #account_money_amount('ETH', 'BTC', 'USDT')
     #max_profit_list, true_reverse, max_profit = search_max_profit(coinlist)
     #print(buy_coin("BTC","ETH",100,999))
@@ -193,16 +212,33 @@ def main():
     #print(search_max_profit(coinlist))
     """
     while(1):
-        execute_triangle(coinlist,minprofit)
+        execute_triangle(coinlist,miniprofit)
     
     """
-    profit = 0.0
-    while(1):
-        max_profit_list, true_reverse, max_profit = search_max_profit(coinlist)
-        profit += max_profit
-        print(max_profit_list)
-        print(max_profit)
-        print(profit)
+    eth, btc, usdt = account_money_amount('ETH', 'BTC', 'USDT')
+    xrp, xmr, neo = account_money_amount('XRP', 'XMR', 'NEO')
+    bcc, LTC, a = account_money_amount('BCC', 'LTC', 'NEO')
+
+
+    print("eth: " + str(eth))
+    print("btc: " + str(btc))
+    print("usdt: " + str(usdt))
+    print("xrp: " + str(xrp))
+    print("bcc: " + str(bcc))
+    print("LTC: " + str(LTC))
+
+    money = 0.0
+    money += eth/getprice("ETH","BTC")['result']['Ask']
+    money += btc/getprice("BTC","BTC")['result']['Ask']
+    money += usdt/getprice("USDT","BTC")['result']['Ask']
+    money += xrp/getprice("XRP","BTC")['result']['Ask']
+    money += bcc/getprice("BCC","BTC")['result']['Ask']
+    money += LTC/getprice("LTC","BTC")['result']['Ask']
+
+    print('Total: ' + str(money) + "(BTC)")
+
+
+    
     
 
 main()
