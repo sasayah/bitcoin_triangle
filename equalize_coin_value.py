@@ -13,6 +13,7 @@ from joblib import Parallel, delayed
 from multiprocessing import Value, Array
 
 
+allowed_btc_value_diff_propotion = 0.2
 
 def getprice(coina,coinb):
     if coina == coinb:
@@ -286,7 +287,7 @@ def get_json_key_data(url):
         print('JSONDecodeError: ', e)
         sys.exit(1)
 
-
+#保有通貨が何BTCの価値があるかを計算
 def btc_value_list(coinlist):
     btc_value_list = []
     for coin in coinlist:
@@ -294,6 +295,44 @@ def btc_value_list(coinlist):
         coin_btc_value = coin_amount * getprice('BTC',coin)['result']['Bid']
         btc_value_list.append(coin_btc_value)
     return btc_value_list
+
+def mean_btc_value(btc_value_list):
+    mean = sum(btc_value_list)/len(btc_value_list)
+    return mean
+
+#平均の価値であれば1,少なければ0,多ければ2のリストを返す
+def check_proper_btc_value(btc_value_list,mean):
+    check_proper_btc_value_list = []
+    for coin_value in btc_value_list:
+        proper_diff = coin_value - mean
+        proper_diff_propotion = proper_diff / mean
+        if proper_diff_propotion > allowed_btc_value_diff_propotion:
+            check_proper_btc_value_list.append(2)
+        elif proper_diff_propotion < (-1) * allowed_btc_value_diff_propotion:
+            check_proper_btc_value_list.append(0)
+        else:
+            check_proper_btc_value_list.append(1)
+    return check_proper_btc_value_list
+
+
+
+'''
+0 [中、中、中]
+1 [大、中、中],[大、大、中],[大、大、大]
+2 [小、中、中],[小、小、中],[小、小、小]
+3 [大、小、中],[大、小、小],[大、大、小]
+''' 
+
+def check_eth_btc_usdt_proper_btc_value(coinlist,check_proper_btc_value_list):
+    basa_coin_list = ['BTC','ETH','USDT']
+    count_big = 0
+    count_mediam = 0
+    count_small = 0
+    for base_coin in basa_coin_list:
+        base_coin_index = coinlist.index(base_coin)
+        base_coin_check_proper_btc_value = check_proper_btc_value_list[base_coin_index]
+
+
 
 
 

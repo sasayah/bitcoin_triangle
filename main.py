@@ -177,7 +177,7 @@ def true_profit(coina, coinb, coinc, buy_coin_a_amount, buy_coin_b_amount, buy_c
 def decide_trade_rate(coina, coinb, sell_coina_amount):
     sum_a_cost = 0
     last_rate = 0
-    n_times = 2 # 何倍まで取引に余裕を持たせるか.調整必要
+    n_times = 1.2 # 何倍まで取引に余裕を持たせるか.調整必要
     url = 'https://bittrex.com/api/v1.1/public/getorderbook?'
     url += 'market=' + coina + '-' + coinb
     url += '&type=both'
