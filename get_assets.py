@@ -216,32 +216,79 @@ def main():
         execute_triangle(coinlist,miniprofit)
     
     """
-    eth, btc, usdt = account_money_amount('ETH', 'BTC', 'USDT')
-    xrp, xmr, neo = account_money_amount('XRP', 'XMR', 'NEO')
-    bcc, LTC, a = account_money_amount('BCC', 'LTC', 'NEO')
+    first_money = 0.0
+    pre_money = 0.0
+    multi_roop = False
 
-    money = 0.0
-    eth_price = eth/getprice("ETH","BTC")['result']['Ask']
-    btc_price = btc/getprice("BTC","BTC")['result']['Ask']
-    usdt_price = usdt/getprice("USDT","BTC")['result']['Ask']
-    xrp_price = xrp/getprice("XRP","BTC")['result']['Ask']
-    bcc_price = bcc/getprice("BCC","BTC")['result']['Ask']
-    ltc_price = LTC/getprice("LTC","BTC")['result']['Ask']
- 
-    money = eth_price + btc_price + usdt_price + xrp_price + bcc_price + ltc_price
+    first_eth, first_btc, first_usdt = account_money_amount('ETH', 'BTC', 'USDT')
+    first_xrp, first_xmr, first_neo = account_money_amount('XRP', 'XMR', 'NEO')
+    first_bcc, first_LTC, first_a = account_money_amount('BCC', 'LTC', 'NEO')
 
-    print("eth: " + str(eth) + ', btc: ' + str(eth_price))
-    print("btc: " + str(btc) + ', btc: ' + str(btc_price))
-    print("usdt: " + str(usdt) + ', btc: ' + str(usdt_price))
-    print("xrp: " + str(xrp) + ', btc: ' + str(xrp_price))
-    print("bcc: " + str(bcc) + ', btc: ' + str(bcc_price))
-    print("LTC: " + str(LTC) + ', btc: ' + str(ltc_price))
+    pre_eth = first_eth
+    pre_btc = first_btc
+    pre_usdt = first_usdt
+    pre_xrp = first_xrp
+    pre_xmr = first_xmr
+    pre_neo = first_neo
+    pre_bcc = first_bcc
+    pre_LTC = first_LTC
 
+    while(1):
+        eth, btc, usdt = account_money_amount('ETH', 'BTC', 'USDT')
+        xrp, xmr, neo = account_money_amount('XRP', 'XMR', 'NEO')
+        bcc, LTC, a = account_money_amount('BCC', 'LTC', 'NEO')
 
-    print('Total: ' + str(money) + "(BTC)")
-
-
+        money = 0.0
+        eth_price = eth/getprice("ETH","BTC")['result']['Ask']
+        btc_price = btc/getprice("BTC","BTC")['result']['Ask']
+        usdt_price = usdt/getprice("USDT","BTC")['result']['Ask']
+        xrp_price = xrp/getprice("XRP","BTC")['result']['Ask']
+        bcc_price = bcc/getprice("BCC","BTC")['result']['Ask']
+        ltc_price = LTC/getprice("LTC","BTC")['result']['Ask']
+        neo_price = neo/getprice("NEO","BTC")['result']['Ask']
+        xmr_price = xmr/getprice("XMR","BTC")['result']['Ask']
     
-    
+        money = eth_price + btc_price + usdt_price + xrp_price + bcc_price + ltc_price + neo_price + xmr_price
+
+        print("eth: " + str(eth) + ', btc: ' + str(eth_price) + '(BTC), pre_diff: ' + str(eth - pre_eth) + '(ETH), total_diff: ' +str(eth - first_eth) + '(ETH)')
+        print("btc: " + str(btc) + ', btc: ' + str(btc_price) + '(BTC), pre_diff: ' + str(btc - pre_btc) + '(BTC), total_diff: ' +str(btc - first_btc) + '(BTC)')
+        print("usdt: " + str(usdt) + ', btc: ' + str(usdt_price) + '(BTC), pre_diff: ' + str(usdt - pre_usdt) + '(USDT), total_diff: ' +str(usdt - first_usdt) + '(USDT)')
+        print("xrp: " + str(xrp) + ', btc: ' + str(xrp_price) + '(BTC), pre_diff: ' + str(xrp - pre_xrp) + '(XRP), total_diff: ' +str(xrp - first_xrp) + '(XRP)')
+        print("bcc: " + str(bcc) + ', btc: ' + str(bcc_price) + '(BTC), pre_diff: ' + str(bcc - pre_bcc) + '(BCC), total_diff: ' +str(bcc - first_bcc) + '(BCC)')
+        print("LTC: " + str(LTC) + ', btc: ' + str(ltc_price) + '(BTC), pre_diff: ' + str(LTC - pre_LTC) + '(LTC), total_diff: ' +str(LTC - first_LTC) + '(LTC)')
+        print("neo: " + str(neo) + ', btc: ' + str(neo_price) + '(BTC), pre_diff: ' + str(neo - pre_neo) + '(NEO), total_diff: ' +str(neo - first_neo) + '(NEO)')
+        print("xmr: " + str(xmr) + ', btc: ' + str(xmr_price) + '(BTC), pre_diff: ' + str(xmr - pre_xmr) + '(XMR), total_diff: ' +str(xmr - first_xmr) + '(XMR)')
+
+        print('Total: ' + str(money) + "(BTC)")
+
+        min_btc_value = money / 12
+
+        if not multi_roop:
+            first_money = money
+
+        print('diff: ' + str(money - pre_money))
+        print('totaldiff: ' + str(money - first_money))
+        multi_roop = True
+
+        pre_money = money
+
+        print("")
+        print("")
+        print("")
+        print("")
+        print("")
+        print("")
+
+
+        if eth_price < min_btc_value or btc_price < min_btc_value or usdt_price < min_btc_value or xrp_price < min_btc_value or bcc_price < min_btc_value or ltc_price < min_btc_value:
+            print("Error")
+            print("Error")
+            print("Error")
+            print("Error")
+            print("Error")
+            print("Error")
+            print("Error")
+            print("Error")
+            print("Error")
 
 main()
