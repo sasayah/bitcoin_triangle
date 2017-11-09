@@ -13,7 +13,7 @@ from joblib import Parallel, delayed
 from multiprocessing import Value, Array
 
 sleep_time = 5
-trade_fee = 0.001
+trade_fee = 0.10/100
 
 def getprice(coina,coinb):
     if coina == coinb:
@@ -341,10 +341,18 @@ def main():
     miniprofit = 0.0001
     sum_profit = 0.0
     
+    '''
     while(1):
         profit = execute_triangle(coinlist,miniprofit)
         sum_profit += profit
         print("SUM PROFIT: " + str(sum_profit) + "(BTC)" )
+    '''
+
+    while(1):
+        sum_profit += search_max_profit(coinlist, miniprofit)[2]
+        print('sum_profit: ' + str(sum_profit))
+        sleep(5)
+
     
     '''
     profit = execute_triangle(coinlist,miniprofit)

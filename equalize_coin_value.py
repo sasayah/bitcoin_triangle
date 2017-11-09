@@ -326,11 +326,26 @@ def check_proper_btc_value(btc_value_list,mean):
 def check_eth_btc_usdt_proper_btc_value(coinlist,check_proper_btc_value_list):
     basa_coin_list = ['BTC','ETH','USDT']
     count_big = 0
-    count_mediam = 0
     count_small = 0
     for base_coin in basa_coin_list:
         base_coin_index = coinlist.index(base_coin)
         base_coin_check_proper_btc_value = check_proper_btc_value_list[base_coin_index]
+        if base_coin_check_proper_btc_value == 0:
+            count_small += 1
+        elif base_coin_check_proper_btc_value == 2:
+            count_big += 1
+
+    if count_big == 0 and count_small == 0:
+        return 0
+    elif count_big != 0 and count_small == 0:
+        return 1
+    elif count_big == 0 and count_small != 0:
+        return 2
+    elif cpunt_big != 0 and count_small != 0:
+        return 3
+ 
+
+
 
 
 
